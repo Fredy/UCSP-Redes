@@ -43,17 +43,18 @@ int main(void) {
     close(SocketFD);
     exit(EXIT_FAILURE);
   }
-  while (strcmp(buffer, "EXIT") != 0) {
+  while (strcmp(buffer, "quit") != 0) {
     bzero(buffer, 256);
     printf("\n[CLIENT]: ");
-    scanf("%s", buffer);
+    //scanf("%s", buffer);
+    fgets(buffer, 256, stdin);
     n = write(SocketFD, buffer,
               strlen(buffer)); // eviamos un mensaje junto al tamaño, retorna la
                                // cantidad de bits que se han enviado.
     // en read() retorna cuántos bytes han sido recibidos, porque pueden ser
     // menos de los esperados.
     /* perform read write operations ... */
-    if (strcmp(buffer, "EXIT") == 0) {
+    if (strcmp(buffer, "quit") == 0) {
       break;
     }
 

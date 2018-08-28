@@ -23,7 +23,7 @@ int main(void) {
   memset(&stSockAddr, 0, sizeof(struct sockaddr_in));
 
   stSockAddr.sin_family = AF_INET;         // el tipo de socket
-  stSockAddr.sin_port = htons(1300);       // el puerto
+  stSockAddr.sin_port = htons(9999);       // el puerto
   stSockAddr.sin_addr.s_addr = INADDR_ANY; // la address puede ser cualquiera
 
   if (-1 == bind(SocketFD, (const struct sockaddr *)&stSockAddr,
@@ -47,7 +47,7 @@ int main(void) {
              NULL); // aquí espera por conecciones. // (server socket,...,...)
                     // y retorna el socket del cliente.
 
-  while (strcmp(buffer, "EXIT") != 0) // el servidor siempre está corriendo
+  while (strcmp(buffer, "quit") != 0) // el servidor siempre está corriendo
   {
     if (0 > ConnectFD) {
       perror("error accept failed");
@@ -61,14 +61,15 @@ int main(void) {
       perror("ERROR reading from socket");
     printf("[CLIENT]: %s", buffer);
 
-    if (strcmp(buffer, "EXIT") == 0) {
+    if (strcmp(buffer, "quit") == 0) {
       break;
     }
 
 
     bzero(buffer, 256); // limpiamos el buffer
     printf("\n[SERVER]: ");
-    scanf("%s", buffer);
+    //scanf("%s", buffer);
+    fgets(buffer, 256, stdin);
     n = write(ConnectFD, buffer, strlen(buffer));
     if (n < 0)
       perror("ERROR writing to socket");
