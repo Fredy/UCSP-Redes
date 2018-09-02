@@ -1,18 +1,19 @@
-/* Server code in C */
-
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+using namespace std;
 
 int main(void) {
   struct sockaddr_in stSockAddr;
   int SocketFD = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
   char buffer[256];
+  char protocolDataBuffer[5];
   int n;
 
   if (-1 == SocketFD) {
@@ -23,32 +24,29 @@ int main(void) {
   memset(&stSockAddr, 0, sizeof(struct sockaddr_in));
 
   stSockAddr.sin_family = AF_INET;         // el tipo de socket
-  stSockAddr.sin_port = htons(9999);       // el puerto
+  stSockAddr.sin_port = htons(2999);       // el puerto
   stSockAddr.sin_addr.s_addr = INADDR_ANY; // la address puede ser cualquiera
 
+  // enlazamos la estructura con el   socket usando bind()
   if (-1 == bind(SocketFD, (const struct sockaddr *)&stSockAddr,
-                 sizeof(struct sockaddr_in))) // enlazamos la estructura con el
-                                              // socket usando bind()
-  {
+                 sizeof(struct sockaddr_in))) {
     perror("error bind failed");
     close(SocketFD);
     exit(EXIT_FAILURE);
   }
-
-  if (-1 == listen(SocketFD, 10)) // ponemos el server en listening mode, para
-                                  // que empieze a escuchar conecciones
-  {
+  // ponemos el server en listening mode, para que empieze a escuchar
+  // conecciones
+  if (-1 == listen(SocketFD, 10)) {
     perror("error listen failed");
     close(SocketFD);
     exit(EXIT_FAILURE);
   }
-  int ConnectFD =
-      accept(SocketFD, NULL,
-             NULL); // aquí espera por conecciones. // (server socket,...,...)
-                    // y retorna el socket del cliente.
+  // aquí espera por conecciones. // (server socket,...,...) // y retorna el
+  // socket del cliente.
+  int ConnectFD = accept(SocketFD, NULL, NULL);
 
-  while (strcmp(buffer, "quit") != 0) // el servidor siempre está corriendo
-  {
+  // el servidor siempre está corriendo
+  while (strcmp(buffer, "quit") != 0) {
     if (0 > ConnectFD) {
       perror("error accept failed");
       close(SocketFD);
@@ -56,7 +54,12 @@ int main(void) {
     }
 
     bzero(buffer, 256);               // limpiamos el buffer
-    n = read(ConnectFD, buffer, 255); // leemos
+    bzero(protocolDataBuffer, 5);
+    n = read(ConnectFD, protocolDataBuffer, 5);
+
+    int numChars = stoi(protocolDataBuffer);
+
+    n = read(ConnectFD, buffer, numChars); // leemos
     if (n < 0)
       perror("ERROR reading from socket");
     printf("[CLIENT]: %s", buffer);
@@ -65,12 +68,19 @@ int main(void) {
       break;
     }
 
-
     bzero(buffer, 256); // limpiamos el buffer
     printf("\n[SERVER]: ");
-    //scanf("%s", buffer);
+    // scanf("%s", buffer);
     fgets(buffer, 256, stdin);
-    n = write(ConnectFD, buffer, strlen(buffer));
+    int messageSize = strlen(buffer);
+    bzero(protocolDataBuffer, 5); // TODO: this is not necesary
+    sprintf(protocolDataBuffer,"%04d", messageSize);
+
+    printf("\n> %s\n", protocolDataBuffer);
+    printf("\n. %d\n", messageSize);
+
+    n = write(ConnectFD, protocolDataBuffer, 5);
+    n = write(ConnectFD, buffer, messageSize);
     if (n < 0)
       perror("ERROR writing to socket");
 
