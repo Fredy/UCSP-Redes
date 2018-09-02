@@ -1,6 +1,6 @@
-/* Client code in C */
-
+#include "common.hpp"
 #include <arpa/inet.h>
+#include <iostream>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,7 +8,6 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <string.h>
 
 int main(void) {
   struct sockaddr_in stSockAddr;
@@ -24,7 +23,7 @@ int main(void) {
   memset(&stSockAddr, 0, sizeof(struct sockaddr_in));
 
   stSockAddr.sin_family = AF_INET;
-  stSockAddr.sin_port = htons(1999);
+  stSockAddr.sin_port = htons(comm::PORT);
   Res = inet_pton(AF_INET, "127.0.0.1", &stSockAddr.sin_addr);
 
   if (0 > Res) {
@@ -43,27 +42,26 @@ int main(void) {
     close(SocketFD);
     exit(EXIT_FAILURE);
   }
-  while (strcmp(buffer, "quit") != 0) {
-    bzero(buffer, 256);
-    printf("\n[CLIENT]: ");
-    //scanf("%s", buffer);
-    fgets(buffer, 256, stdin);
-    n = write(SocketFD, buffer,
-              strlen(buffer)); // eviamos un mensaje junto al tamaño, retorna la
-                               // cantidad de bits que se han enviado.
-    // en read() retorna cuántos bytes han sido recibidos, porque pueden ser
-    // menos de los esperados.
-    /* perform read write operations ... */
-    if (strcmp(buffer, "quit") == 0) {
+  while (true) {
+    cout << "[CLIENT]: ";
+    string outMessage;
+    getline(cin, outMessage);
+
+    comm::writeWithProtocol(outMessage, SocketFD);
+
+    if (outMessage == comm::QUIT_COMMAND) {
       break;
     }
 
-    bzero(buffer, 256);
-    n = read(SocketFD, buffer, 256);
-    printf("[SERVER]: %s", buffer);
-  }
-  shutdown(SocketFD, SHUT_RDWR);
+    const string inMessage = comm::readWithProtocol(SocketFD);
+    // NOTE: the incoming message already have a line break
+    cout << "[SERVER]: " << inMessage << '\n';
 
+    if (inMessage == comm::QUIT_COMMAND) {
+      break;
+    }
+  }
+
+  shutdown(SocketFD, SHUT_RDWR);
   close(SocketFD);
-  return 0;
 }
