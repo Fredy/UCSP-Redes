@@ -1,18 +1,10 @@
 #include "common.hpp"
 #include <arpa/inet.h>
-#include <iostream>
 #include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <string>
 #include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
-using namespace std;
 
 int main(void) {
-  struct sockaddr_in stSockAddr;
+  sockaddr_in stSockAddr;
   int SocketFD = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
   if (-1 == SocketFD) {
@@ -20,15 +12,13 @@ int main(void) {
     exit(EXIT_FAILURE);
   }
 
-  memset(&stSockAddr, 0, sizeof(struct sockaddr_in));
-
   stSockAddr.sin_family = AF_INET;         // el tipo de socket
   stSockAddr.sin_port = htons(comm::PORT); // el puerto
   stSockAddr.sin_addr.s_addr = INADDR_ANY; // la address puede ser cualquiera
 
   // enlazamos la estructura con el   socket usando bind()
-  if (-1 == bind(SocketFD, (const struct sockaddr *)&stSockAddr,
-                 sizeof(struct sockaddr_in))) {
+  if (-1 ==
+      bind(SocketFD, (const sockaddr *)&stSockAddr, sizeof(sockaddr_in))) {
     perror("error bind failed");
     close(SocketFD);
     exit(EXIT_FAILURE);
