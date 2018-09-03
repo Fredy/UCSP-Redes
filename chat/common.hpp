@@ -1,3 +1,7 @@
+#pragma once
+
+#include "ui.hpp"
+#include <atomic>
 #include <exception>
 #include <iostream>
 #include <string>
@@ -5,7 +9,7 @@
 using namespace std;
 
 namespace comm {
-const int PORT = 2999;
+const int PORT = 2990;
 const int BUFFER_SIZE = 256;
 const int PROTOCOL_BUFFER_SIZE = 5;
 const string QUIT_COMMAND = "quit";
@@ -40,12 +44,14 @@ string readWithProtocol(const int connectionID) {
   return {buffer};
 }
 
-void readThread(const int connectionID, const string &otherName) {
+void readConcurrent(const int connectionID, const string &otherName,
+                    NcursesUI &ui) {
   while (true) {
-    const string inMessage = comm::readWithProtocol(connectionID);
-    cout << "[" << otherName << "]: " << inMessage << '\n';
+    string message = comm::readWithProtocol(connectionID);
+    // cout << "[" << otherName << "]: " << inMessage << '\n';
+    ui.writeOutput("[" + otherName + "]: " + message);
 
-    if (inMessage == comm::QUIT_COMMAND) {
+    if (message == comm::QUIT_COMMAND) {
       break;
     }
   }

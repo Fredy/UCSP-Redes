@@ -1,2 +1,2 @@
-g++ server.cpp -lpthread -o server.out
-g++ client.cpp -lpthread -o client.out
+g++ server.cpp -lpthread -lncurses -o server.out
+g++ client.cpp -lpthread -lncurses -o client.out

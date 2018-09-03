@@ -1,10 +1,12 @@
 #include "common.hpp"
+#include "ui.hpp"
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <thread>
 
 int main(void) {
+  // ------ Connection Setup ------
   sockaddr_in stSockAddr;
   int Res;
   int SocketFD = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -34,13 +36,19 @@ int main(void) {
     exit(EXIT_FAILURE);
   }
 
-  thread thrRead = thread(comm::readThread, SocketFD, "SERVER");
+  // ------ UI Setup ------
+  NcursesUI ui;
+  ui.init();
+
+  // ------ Actual functionality ------
+  thread thrRead = thread(comm::readConcurrent, SocketFD, "SERVER", ref(ui));
   thrRead.detach();
 
   while (true) {
-    cout << "[CLIENT]: ";
-    string outMessage;
-    getline(cin, outMessage);
+    // cout << "[SERVER]: ";
+    string outMessage = ui.readInput();
+    ui.writeOutput("[CLIENT]: " + outMessage);
+    // getline(cin, outMessage);
 
     comm::writeWithProtocol(outMessage, SocketFD);
 
@@ -48,7 +56,10 @@ int main(void) {
       break;
     }
   }
+  ui.terminate();
+  cout << "Disconnected\n";
 
+  // ------ Connection Shutdown ------
   shutdown(SocketFD, SHUT_RDWR);
   close(SocketFD);
 }
