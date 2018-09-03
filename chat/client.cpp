@@ -2,6 +2,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <thread>
 
 int main(void) {
   sockaddr_in stSockAddr;
@@ -32,6 +33,10 @@ int main(void) {
     close(SocketFD);
     exit(EXIT_FAILURE);
   }
+
+  thread thrRead = thread(comm::readThread, SocketFD, "SERVER");
+  thrRead.detach();
+
   while (true) {
     cout << "[CLIENT]: ";
     string outMessage;
@@ -40,13 +45,6 @@ int main(void) {
     comm::writeWithProtocol(outMessage, SocketFD);
 
     if (outMessage == comm::QUIT_COMMAND) {
-      break;
-    }
-
-    const string inMessage = comm::readWithProtocol(SocketFD);
-    cout << "[SERVER]: " << inMessage << '\n';
-
-    if (inMessage == comm::QUIT_COMMAND) {
       break;
     }
   }

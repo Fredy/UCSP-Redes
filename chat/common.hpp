@@ -1,7 +1,7 @@
 #include <exception>
+#include <iostream>
 #include <string>
 #include <unistd.h>
-#include <iostream>
 using namespace std;
 
 namespace comm {
@@ -26,6 +26,7 @@ string readWithProtocol(const int connectionID) {
     numChars = stoi(bufferProtocol);
   } catch (const exception &e) {
     cerr << ">> Something gone wrong: " << e.what() << '\n';
+    cerr << ">> BuffProtocol: '" << bufferProtocol << "'\n";
     return "";
   }
 
@@ -37,6 +38,17 @@ string readWithProtocol(const int connectionID) {
   }
 
   return {buffer};
+}
+
+void readThread(const int connectionID, const string &otherName) {
+  while (true) {
+    const string inMessage = comm::readWithProtocol(connectionID);
+    cout << "[" << otherName << "]: " << inMessage << '\n';
+
+    if (inMessage == comm::QUIT_COMMAND) {
+      break;
+    }
+  }
 }
 
 void writeWithProtocol(const string &message, const int connectionID) {

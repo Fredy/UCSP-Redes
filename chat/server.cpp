@@ -2,6 +2,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <thread>
 
 int main(void) {
   sockaddr_in stSockAddr;
@@ -33,25 +34,18 @@ int main(void) {
   // aquí espera por conecciones. // (server socket,...,...) // y retorna el
   // socket del cliente.
   int ConnectFD = accept(SocketFD, NULL, NULL);
+  if (0 > ConnectFD) {
+    perror("error accept failed");
+    close(SocketFD);
+    exit(EXIT_FAILURE);
+  }
 
+  thread thrRead = thread(comm::readThread, ConnectFD, "CLIENT");
+  thrRead.detach();
   // el servidor siempre está corriendo
   while (true) {
-    if (0 > ConnectFD) {
-      perror("error accept failed");
-      close(SocketFD);
-      exit(EXIT_FAILURE);
-    }
-
-    const string inMessage = comm::readWithProtocol(ConnectFD);
-    cout << "[CLIENT]: " << inMessage << '\n';
-
-    if (inMessage == comm::QUIT_COMMAND) {
-      break;
-    }
-
-    string outMessage;
-
     cout << "[SERVER]: ";
+    string outMessage;
     getline(cin, outMessage);
 
     comm::writeWithProtocol(outMessage, ConnectFD);
