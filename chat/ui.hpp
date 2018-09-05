@@ -66,6 +66,7 @@ public:
 
   void writeOutput(string str) {
     write(outputWin, str);
+    wrefresh(inputWin);
   }
   
 };
