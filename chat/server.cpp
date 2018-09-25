@@ -45,7 +45,8 @@ int main(void) {
   ui.init();
 
   // ------ Actual functionality ------
-  thread thrRead = thread(comm::readConcurrent, ConnectFD, "CLIENT", ref(ui));
+  atomic<bool> shouldClose(false);
+  thread thrRead = thread(comm::readConcurrent, ConnectFD, "CLIENT", ref(ui), ref(shouldClose));
   thrRead.detach();
 
   while (true) {
@@ -53,6 +54,10 @@ int main(void) {
     string outMessage = ui.readInput();
     ui.writeOutput("[SERVER]: " + outMessage);
     // getline(cin, outMessage);
+
+    if (shouldClose) {
+      break;
+    }
 
     comm::writeWithProtocol(outMessage, ConnectFD);
 

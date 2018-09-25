@@ -45,13 +45,14 @@ string readWithProtocol(const int connectionID) {
 }
 
 void readConcurrent(const int connectionID, const string &otherName,
-                    NcursesUI &ui) {
+                    NcursesUI &ui, atomic<bool> &hasExited) {
   while (true) {
     string message = comm::readWithProtocol(connectionID);
     // cout << "[" << otherName << "]: " << inMessage << '\n';
     ui.writeOutput("[" + otherName + "]: " + message);
 
     if (message == comm::QUIT_COMMAND) {
+      hasExited = true;
       break;
     }
   }
