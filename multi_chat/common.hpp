@@ -9,7 +9,7 @@
 using namespace std;
 
 namespace comm {
-const int PORT = 2984;
+const int PORT = 2924;
 const int BUFFER_SIZE = 256;
 const int PROTOCOL_BUFFER_SIZE = 5;
 const string QUIT_COMMAND = "quit";
@@ -132,7 +132,14 @@ void writeWithProtocol(const string &message, const int connectionID) {
   } else if (operation == 'L') {
     write(connectionID, &operation, 1);
   } else if (operation == 'B') {
-    // TODO: do broadcast
+    string propMessage(message, firstSpace + 1);
+    char msgSize[3] = {0};
+
+    snprintf(msgSize, 3, "%02d", propMessage.size());
+
+    write(connectionID, &operation, 1);
+    write(connectionID, msgSize, 2);
+    write(connectionID, propMessage.c_str(), propMessage.size());
   }
   else {
     cerr << "Operation not supported\n";
