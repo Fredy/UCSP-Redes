@@ -10,12 +10,15 @@
 using namespace std;
 
 namespace comm {
-const int PORT = 45100;
+const int PORT = 8889;
 const int BUFFER_SIZE = 256;
 const int PROTOCOL_BUFFER_SIZE = 5;
 const string QUIT_COMMAND = "quit";
-const int ROWS = 10;
-const int COLS = 10;
+const int ROWS = 20;
+const int COLS = 20;
+
+int posX = 0;
+int posY = 0;
 
 string readWithProtocol(const int connectionID) {
   char type;
@@ -114,8 +117,8 @@ void writeWithProtocol(const string &message, const int connectionID) {
     snprintf(usernameSize,3, "%02d", username.size());
 
     write(connectionID, &operation, 1);
-    write(connectionID, usernameSize, 2);
-    write(connectionID, username.c_str(), username.size());
+    //write(connectionID, usernameSize, 2);
+    write(connectionID, username.c_str(), 1);
   } else if (operation == 'O') {
     write(connectionID, &operation, 1);
   
@@ -156,8 +159,62 @@ void writeWithProtocol(const string &message, const int connectionID) {
     write(connectionID, propMessage.c_str(), propMessage.size());
   } else if(operation =='U'){
     write(connectionID, &operation, 1);
-  }
-  else {
+  } else if( operation == 'W'){
+    //string positionCol(message, firstSpace + 1, secondSpace - firstSpace - 1);
+    //string positionRow(message, secondSpace + 1);
+    char positionCol[3] = {0};
+    char positionRow[3] = {0};
+
+    posY -= 1;
+    //positionCol = atoi(posY)
+    //positionRow = atoi(posX);
+    snprintf(positionCol, 3, "%02d", posX);
+    snprintf(positionRow, 3, "%02d", posY);
+    operation = 'M';
+    write(connectionID, &operation, 1);
+    write(connectionID, positionCol, 2);
+    write(connectionID, positionRow, 2);
+    //write(connectionID, rowsSize, 2);
+    //write(connectionID, colsSize, 2);
+  } else if( operation == 'S'){
+    char positionCol[3] = {0};
+    char positionRow[3] = {0};
+
+    posY += 1;
+    //positionCol = atoi(posY)
+    //positionRow = atoi(posX);
+    operation = 'M';
+    snprintf(positionCol, 3, "%02d", posX);
+    snprintf(positionRow, 3, "%02d", posY);
+
+    write(connectionID, &operation, 1);
+    write(connectionID, positionCol, 2);
+    write(connectionID, positionRow, 2);
+  }else if( operation == 'A'){
+    char positionCol[3] = {0};
+    char positionRow[3] = {0};
+
+    posX -= 1;
+    operation = 'M';
+    snprintf(positionCol, 3, "%02d", posX);
+    snprintf(positionRow, 3, "%02d", posY);
+
+    write(connectionID, &operation, 1);
+    write(connectionID, positionCol, 2);
+    write(connectionID, positionRow, 2);
+  }else if( operation == 'D'){
+    char positionCol[3] = {0};
+    char positionRow[3] = {0};
+
+    posX += 1;
+    operation = 'M';
+    snprintf(positionCol, 3, "%02d", posX);
+    snprintf(positionRow, 3, "%02d", posY);
+
+    write(connectionID, &operation, 1);
+    write(connectionID, positionCol, 2);
+    write(connectionID, positionRow, 2);
+  } else {
     cerr << "Operation not supported\n";
   }
 }

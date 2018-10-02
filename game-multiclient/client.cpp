@@ -17,7 +17,8 @@ int main(void) {
 
   stSockAddr.sin_family = AF_INET;
   stSockAddr.sin_port = htons(comm::PORT);
-  Res = inet_pton(AF_INET, "127.0.0.1", &stSockAddr.sin_addr);
+  //Res = inet_pton(AF_INET, "127.0.0.1", &stSockAddr.sin_addr);
+  Res = inet_pton(AF_INET, "192.168.43.58", &stSockAddr.sin_addr);
 
   if (0 > Res) {
     perror("error: first parameter is not a valid address family");
@@ -44,11 +45,12 @@ int main(void) {
   atomic<bool> shouldClose(false);
   thread thrRead = thread(comm::readConcurrent, SocketFD, "SERVER", ref(ui), ref(shouldClose));
   thrRead.detach();
-
+  //string Move;
   while (true) {
-     cout << "[CLIENT]: ";
+     //cout << "[CLIENT]: ";
     //string outMessage = ui.readInput();
     //ui.writeOutput("[CLIENT]: " + outMessage);
+    //cin>> Move ;
     string outMessage;
     getline(cin, outMessage);
 
